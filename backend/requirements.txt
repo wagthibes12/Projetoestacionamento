@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlmodel>=0.0.16
+pydantic-settings>=2.2
+pymysql>=1.1
+cryptography>=42
+sshtunnel>=0.4.0
+paramiko>=3.4,<4
