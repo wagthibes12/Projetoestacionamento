@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkControl | Controle de Estacionamento</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+
+    <!-- Tela de login -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="brand-icon">P</div>
+                <h1>ParkControl</h1>
+                <p>Controle de Estacionamento</p>
+            </div>
+
+            <h2>Acessar o sistema</h2>
+            <p class="login-description">Entre com suas credenciais para continuar.</p>
+
+            <form id="form-login">
+                <div class="form-group">
+                    <label for="login-usuario">Login</label>
+                    <input type="text" id="login-usuario" name="login"
+                        placeholder="Digite seu login" maxlength="50"
+                        autocomplete="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-senha">Senha</label>
+                    <input type="password" id="login-senha" name="senha"
+                        placeholder="Digite sua senha" maxlength="128"
+                        autocomplete="current-password" required>
+                </div>
+
+                <p id="login-mensagem" class="message" role="alert"></p>
+
+                <button type="submit" id="btn-login" class="btn btn-primary btn-login">
+                    Entrar
+                </button>
+            </form>
+
+            <p class="login-footer">Acesso restrito a usuários autorizados.</p>
+        </div>
+    </div>
+
+    <!-- Sistema principal -->
+    <div id="app-container" class="app-container" hidden>
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">P</div>
+                <div>
+                    <h2>ParkControl</h2>
+                    <span>Gestão de estacionamento</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <p class="nav-title">MENU PRINCIPAL</p>
+
+                <a href="#inicio" class="nav-link active" data-page="inicio">
+                    <span class="nav-icon">⌂</span> Início
+                </a>
+                <a href="#clientes" class="nav-link" data-page="clientes">
+                    <span class="nav-icon">♙</span> Clientes
+                </a>
+                <a href="#veiculos" class="nav-link" data-page="veiculos">
+                    <span class="nav-icon">▣</span> Veículos
+                </a>
+                <a href="#movimentacoes" class="nav-link" data-page="movimentacoes">
+                    <span class="nav-icon">⇄</span> Entradas e saídas
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-avatar">U</div>
+                <div class="user-info">
+                    <strong id="usuario-nome">Usuário</strong>
+                    <span>Autenticado</span>
+                </div>
+                <button type="button" id="btn-logout" class="btn-logout"
+                    title="Sair do sistema">↪</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="breadcrumb">ParkControl / <span id="pagina-atual">Início</span></p>
+                    <h1 id="titulo-pagina">Visão geral</h1>
+                </div>
+                <div class="topbar-status">
+                    <span class="status-dot"></span> Sistema conectado
+                </div>
+            </header>
+
+            <!-- Página inicial -->
+            <section id="pagina-inicio" class="page-section">
+                <div class="welcome-panel">
+                    <div>
+                        <p class="eyebrow">PAINEL DE CONTROLE</p>
+                        <h2>Bem-vindo ao ParkControl</h2>
+                        <p>Gerencie os clientes e veículos do seu estacionamento em um só lugar.</p>
+                    </div>
+                    <div class="welcome-icon">P</div>
+                </div>
+
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <div class="stat-icon icon-blue">♙</div>
+                        <div>
+                            <p>Total de clientes</p>
+                            <h3 id="total-clientes">0</h3>
+                            <span>Clientes cadastrados</span>
+                        </div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon icon-green">✓</div>
+                        <div>
+                            <p>Clientes ativos</p>
+                            <h3 id="clientes-ativos">0</h3>
+                            <span>Cadastros ativos</span>
+                        </div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-icon icon-orange">◷</div>
+                        <div>
+                            <p>Clientes inativos</p>
+                            <h3 id="clientes-inativos">0</h3>
+                            <span>Cadastros inativos</span>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Acesso rápido</h2>
+                            <p>Escolha uma área para continuar.</p>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <button type="button" class="quick-action" data-go-page="clientes">
+                            <span class="quick-action-icon">♙</span>
+                            <span>
+                                <strong>Gerenciar clientes</strong>
+                                <small>Consultar e cadastrar clientes</small>
+                            </span>
+                            <span class="action-arrow">→</span>
+                        </button>
+                        <button type="button" class="quick-action" data-go-page="veiculos">
+                            <span class="quick-action-icon">▣</span>
+                            <span>
+                                <strong>Gerenciar veículos</strong>
+                                <small>Consultar e cadastrar veículos</small>
+                            </span>
+                            <span class="action-arrow">→</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Página de clientes -->
+            <section id="pagina-clientes" class="page-section" hidden>
+                <div class="content-card">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="titulo-form-cliente">Cadastrar cliente</h2>
+                            <p>Preencha os dados para registrar um cliente.</p>
+                        </div>
+                    </div>
+
+                    <form id="form-cliente">
+                        <input type="hidden" id="cliente-id">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="cliente-nome">Nome completo *</label>
+                                <input type="text" id="cliente-nome" name="nome"
+                                    maxlength="150" placeholder="Nome do cliente" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cliente-documento">CPF/CNPJ *</label>
+                                <input type="text" id="cliente-documento" name="cpf_cnpj"
+                                    maxlength="20" placeholder="Digite o CPF ou CNPJ" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cliente-telefone">Telefone</label>
+                                <input type="tel" id="cliente-telefone" name="telefone"
+                                    maxlength="30" placeholder="(00) 00000-0000">
+                            </div>
+                            <div class="form-group">
+                                <label for="cliente-email">E-mail</label>
+                                <input type="email" id="cliente-email" name="email"
+                                    maxlength="150" placeholder="cliente@email.com">
+                            </div>
+                        </div>
+
+                        <p id="cliente-mensagem" class="message" role="status"></p>
+                        <div class="form-actions">
+                            <button type="button" id="btn-cancelar-edicao"
+                                class="btn btn-secondary" hidden>Cancelar edição</button>
+                            <button type="submit" id="btn-salvar-cliente"
+                                class="btn btn-primary">Cadastrar cliente</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-heading clients-heading">
+                        <div>
+                            <h2>Clientes cadastrados</h2>
+                            <p>Consulte e gerencie os clientes registrados.</p>
+                        </div>
+                        <button type="button" id="btn-atualizar-clientes"
+                            class="btn btn-secondary">↻ Atualizar</button>
+                    </div>
+
+                    <div class="table-toolbar">
+                        <input type="search" id="pesquisa-cliente"
+                            placeholder="Pesquisar por nome, documento ou e-mail..."
+                            aria-label="Pesquisar clientes">
+                    </div>
+                    <p id="lista-mensagem" class="message" role="status"></p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th><th>Nome</th><th>CPF/CNPJ</th>
+                                    <th>Telefone</th><th>E-mail</th><th>Status</th><th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-clientes">
+                                <tr><td colspan="7" class="empty-state">Carregando clientes...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Página de veículos -->
+            <section id="pagina-veiculos" class="page-section" hidden>
+                <div class="content-card">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="titulo-form-veiculo">Cadastrar veículo</h2>
+                            <p>Registre os veículos que utilizam o estacionamento.</p>
+                        </div>
+                    </div>
+
+                    <form id="form-veiculo">
+                        <input type="hidden" id="veiculo-id">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="veiculo-placa">Placa *</label>
+                                <input type="text" id="veiculo-placa" maxlength="8"
+                                    placeholder="ABC1D23" autocomplete="off" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="veiculo-tipo">Tipo *</label>
+                                <select id="veiculo-tipo" required>
+                                    <option value="CARRO">Carro</option>
+                                    <option value="MOTO">Moto</option>
+                                    <option value="OUTRO">Outro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="veiculo-modelo">Modelo</label>
+                                <input type="text" id="veiculo-modelo" maxlength="60"
+                                    placeholder="Ex.: Gol MSI">
+                            </div>
+                            <div class="form-group">
+                                <label for="veiculo-cor">Cor</label>
+                                <input type="text" id="veiculo-cor" maxlength="30"
+                                    placeholder="Ex.: Prata">
+                            </div>
+                            <div class="form-group">
+                                <label for="veiculo-cliente">Cliente (opcional)</label>
+                                <select id="veiculo-cliente">
+                                    <option value="">Sem cliente vinculado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <p id="veiculo-mensagem" class="message" role="status"></p>
+                        <div class="form-actions">
+                            <button type="button" id="btn-cancelar-veiculo"
+                                class="btn btn-secondary" hidden>Cancelar edição</button>
+                            <button type="submit" id="btn-salvar-veiculo"
+                                class="btn btn-primary">Cadastrar veículo</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-heading clients-heading">
+                        <div>
+                            <h2>Veículos cadastrados</h2>
+                            <p>Consulte e gerencie os veículos registrados.</p>
+                        </div>
+                        <button type="button" id="btn-atualizar-veiculos"
+                            class="btn btn-secondary">↻ Atualizar</button>
+                    </div>
+
+                    <div class="table-toolbar">
+                        <input type="search" id="pesquisa-veiculo"
+                            placeholder="Pesquisar por placa, modelo, cor ou cliente..."
+                            aria-label="Pesquisar veículos">
+                    </div>
+                    <p id="veiculo-lista-mensagem" class="message" role="status"></p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th><th>Placa</th><th>Tipo</th><th>Modelo</th>
+                                    <th>Cor</th><th>Cliente</th><th>Status</th><th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-veiculos">
+                                <tr><td colspan="8" class="empty-state">Carregando veículos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Página ainda não conectada ao backend -->
+            <section id="pagina-movimentacoes" class="page-section" hidden>
+                <div class="content-card placeholder-card">
+                    <div class="placeholder-icon">⇄</div>
+                    <h2>Entradas e saídas</h2>
+                    <p>Esta área será conectada às rotas de movimentações quando estiverem disponíveis.</p>
+                </div>
+            </section>
+
+            <footer class="main-footer">
+                ParkControl — Sistema de Controle de Estacionamento
+            </footer>
+        </main>
+    </div>
+</body>
+</html>
