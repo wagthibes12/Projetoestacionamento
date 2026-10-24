@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from sqlmodel import Field
 
-from app.models.base import USUARIOS_ID, AuditoriaBase, agora_utc
+from app.models.base import USUARIOS_ID, AuditoriaBase, agora_utc, campo_datahora
 from app.models.enums import FormaPagamento, StatusMovimentacao, TipoCobranca
 
 
@@ -17,8 +17,8 @@ class Movimentacao(AuditoriaBase, table=True):
     vaga_id: int = Field(foreign_key="vagas.id")
     # Entrada e saída usam o mesmo relógio (o da API, em UTC): é a base do
     # valor cobrado.
-    entrada_em: datetime = Field(default_factory=agora_utc)
-    saida_em: datetime | None = None
+    entrada_em: datetime = campo_datahora(default_factory=agora_utc)
+    saida_em: datetime | None = campo_datahora(default=None)
     # Gravado na saída, o que preserva o preço da época. Mensalista fica 0.00,
     # pois a cobrança vai pela mensalidade.
     valor_cobrado: Decimal | None = Field(default=None, max_digits=10, decimal_places=2)

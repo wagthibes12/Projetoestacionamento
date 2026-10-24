@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from sqlmodel import Field
 
-from app.models.base import USUARIOS_ID, AuditoriaBase
+from app.models.base import USUARIOS_ID, AuditoriaBase, campo_datahora
 from app.models.enums import FormaPagamento, StatusMensalidade
 
 
@@ -21,6 +21,6 @@ class Mensalidade(AuditoriaBase, table=True):
     vencimento: date
     status: StatusMensalidade = Field(default=StatusMensalidade.PENDENTE)
     # Os três campos abaixo só são preenchidos quando a mensalidade é paga.
-    pago_em: datetime | None = None
+    pago_em: datetime | None = campo_datahora(default=None)
     forma_pagamento: FormaPagamento | None = None
     recebido_por: int | None = Field(default=None, foreign_key=USUARIOS_ID)

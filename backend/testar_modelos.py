@@ -1,23 +1,42 @@
-"""Importar todos os modelos aqui garante que o SQLAlchemy conheça todas as
-tabelas. As chaves estrangeiras referenciam tabelas pelo nome; se algum modelo
-não tiver sido importado, gravar um registro falha com NoReferencedTableError.
-"""
-from app.models.cliente import Cliente
-from app.models.mensalidade import Mensalidade
-from app.models.mensalista import Mensalista
-from app.models.movimentacao import Movimentacao
-from app.models.preco import Preco
-from app.models.usuario import Usuario
-from app.models.vaga import Vaga
-from app.models.veiculo import Veiculo
+"""Confere se os modelos batem com as tabelas reais do banco.
 
-__all__ = [
-    "Cliente",
-    "Mensalidade",
-    "Mensalista",
-    "Movimentacao",
-    "Preco",
-    "Usuario",
-    "Vaga",
-    "Veiculo",
-]
+Uso (dentro da pasta backend, com o .venv ativo):
+    python testar_modelos.py
+
+Para cada modelo, o SQLModel faz um SELECT com todas as colunas que ele
+declara. Se alguma coluna não existir no banco (ou tiver nome diferente),
+o banco responde com erro "Unknown column", e o problema aparece aqui.
+"""
+from sqlalchemy import func
+from sqlmodel import Session, select
+
+from app.core.database import encerrar_conexao, iniciar_conexao
+from app.models import (
+    Cliente,
+    Mensalidade,
+    Mensalista,
+    Movimentacao,
+    Preco,
+    Usuario,
+    Vaga,
+    Veiculo,
+)
+
+# Cada novo modelo criado entra nesta lista.
+MODELOS = [Usuario, Cliente, Veiculo, Vaga, Preco, Mensalista, Movimentacao, Mensalidade]
+
+
+def main() -> None:
+    engine = iniciar_conexao()
+    try:
+        with Session(engine) as session:
+            for modelo in MODELOS:
+                session.exec(select(modelo).limit(1)).first()
+                total = session.exec(select(func.count()).select_from(modelo)).one()
+                print(f"OK  {modelo.__tablename__}: colunas conferem ({total} registros)")
+    finally:
+        encerrar_conexao()
+
+
+if __name__ == "__main__":
+    main()

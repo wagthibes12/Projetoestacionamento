@@ -1,6 +1,8 @@
 """Campos comuns a todas as tabelas do sistema (auditoria)."""
 from datetime import datetime, timezone
+from typing import Any
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, SQLModel
 
 # Todas as colunas "*_por" apontam para a tabela de operadores.
@@ -15,6 +17,17 @@ def agora_utc() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+def campo_datahora(**kwargs: Any) -> Any:
+    """Campo de data e hora guardado em UTC, em coluna DATETIME sem fuso.
+
+    As versões novas do SQLModel recusam datetime sem fuso quando o tipo da
+    coluna é deduzido sozinho. Declarar o tipo SQLAlchemy "DateTime" de forma
+    explícita mantém o comportamento combinado: valores em UTC, sem tzinfo.
+    Todo campo de data e hora dos modelos deve usar esta função.
+    """
+    return Field(sa_type=DateTime, **kwargs)
+
+
 class AuditoriaBase(SQLModel):
     """Bloco de auditoria igual nas 8 tabelas: quem e quando criou, editou e excluiu.
 
@@ -25,13 +38,13 @@ class AuditoriaBase(SQLModel):
     autenticado, nunca o frontend, para ninguém forjar a autoria.
     """
 
-    criado_em: datetime = Field(default_factory=agora_utc)
+    criado_em: datetime = campo_datahora(default_factory=agora_utc)
     criado_por: int = Field(foreign_key=USUARIOS_ID)
 
     # Preenchidos apenas quando o registro é editado.
-    atualizado_em: datetime | None = None
+    atualizado_em: datetime | None = campo_datahora(default=None)
     atualizado_por: int | None = Field(default=None, foreign_key=USUARIOS_ID)
 
     # Exclusão lógica: o registro continua no banco para preservar o histórico.
-    excluido_em: datetime | None = None
+    excluido_em: datetime | None = campo_datahora(default=None)
     excluido_por: int | None = Field(default=None, foreign_key=USUARIOS_ID)

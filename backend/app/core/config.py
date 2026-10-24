@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     db_user: str
     db_password: SecretStr
 
+    # Autenticação. A chave NÃO tem valor padrão de propósito: um padrão
+    # conhecido permitiria a qualquer pessoa forjar tokens de login.
+    secret_key: SecretStr
+    jwt_algorithm: str = "HS256"
+    # Duração do login. 480 minutos = um turno de 8 horas.
+    access_token_minutes: int = 480
+
     def database_url(self, porta_local: int) -> URL:
         # A porta local do túnel só é conhecida depois que ele abre, por isso
         # a URL é montada sob demanda. URL.create escapa caracteres especiais:
