@@ -13,7 +13,7 @@ from app.core.database import (
     get_session,
     iniciar_conexao,
 )
-from app.routers import auth, clientes,veiculos,cadastros
+from app.routers import auth,clientes,veiculos,cadastros,movimentacoes,painel,mensalidades,mensalistas,operadores
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,11 @@ app.include_router(cadastros.router_clientes)
 app.include_router(cadastros.router_veiculos)
 app.include_router(cadastros.router_vagas)
 app.include_router(cadastros.router_precos)
+app.include_router(movimentacoes.router)
+app.include_router(painel.router)
+app.include_router(mensalistas.router_mensalistas)
+app.include_router(mensalidades.router)
+app.include_router(operadores.router)
 
 @app.get("/saude/banco", tags=["Saúde"])
 def verificar_banco(

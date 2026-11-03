@@ -97,11 +97,11 @@ def criar_router_crud(
             .limit(limite)
             .offset(deslocamento)
         )
-        return session.exec(consulta).all()
+        return [saida.model_validate(item) for item in session.exec(consulta).all()]
 
     @router.get("/{item_id}", response_model=saida)
     def obter(item_id: int, usuario: UsuarioAtual, session: SessaoDb):
-        return buscar_ou_404(session, modelo, item_id)
+        return saida.model_validate(buscar_ou_404(session, modelo, item_id))
 
     @router.post("", response_model=saida, status_code=201)
     def criar(dados: entrada, usuario: UsuarioAtual, session: SessaoDb):
@@ -111,7 +111,7 @@ def criar_router_crud(
         session.add(item)
         salvar(session)
         session.refresh(item)
-        return item
+        return saida.model_validate(item)
 
     @router.patch("/{item_id}", response_model=saida)
     def atualizar(item_id: int, dados: atualizacao, usuario: UsuarioAtual, session: SessaoDb):
@@ -131,7 +131,7 @@ def criar_router_crud(
         item.atualizado_por = usuario.id
         salvar(session)
         session.refresh(item)
-        return item
+        return saida.model_validate(item)
 
     @router.delete("/{item_id}", status_code=204)
     def excluir(item_id: int, usuario: UsuarioAtual, session: SessaoDb):

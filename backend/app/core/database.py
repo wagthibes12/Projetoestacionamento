@@ -1,4 +1,4 @@
-"""Conexão com o MySQL, que fica em um servidor remoto acessado por túnel SSH.
+"""Conexão com o banco de dados (direta ou por túnel SSH).
 
 As tabelas NÃO são criadas por aqui (nada de SQLModel.metadata.create_all):
 o script SQL da pasta database/ é a fonte da verdade do schema, com regras
@@ -14,14 +14,14 @@ from sshtunnel import SSHTunnelForwarder
 
 from app.core.config import get_settings
 
-# Estado único da aplicação: um túnel e um engine, criados na inicialização.
+# Estado único da aplicação: um túnel (se houver) e um engine, criados na inicialização.
 _tunel: SSHTunnelForwarder | None = None
 _engine: Engine | None = None
 
 
 def _usar_utc(dbapi_connection, _connection_record) -> None:
     # O schema grava as datas em UTC (DEFAULT CURRENT_TIMESTAMP usa o fuso da
-    # sessão). Fixar UTC aqui impede que o fuso do servidor MySQL altere os
+    # sessão). Fixar UTC aqui impede que o fuso do servidor do banco altere os
     # horários de entrada e saída, que definem o valor cobrado.
     cursor = dbapi_connection.cursor()
     try:
@@ -30,20 +30,16 @@ def _usar_utc(dbapi_connection, _connection_record) -> None:
         cursor.close()
 
 
-def iniciar_conexao() -> Engine:
-    """Abre o túnel SSH e cria o engine. É seguro chamar mais de uma vez."""
-    global _tunel, _engine
-    if _engine is not None:
-        return _engine
-
-    settings = get_settings()
+def _abrir_tunel(settings) -> SSHTunnelForwarder:
+    if not settings.ssh_user or settings.ssh_password is None:
+        raise RuntimeError("SSH_HOST foi informado no .env, mas faltam SSH_USER e SSH_PASSWORD.")
     tunel = SSHTunnelForwarder(
         (settings.ssh_host, settings.ssh_port),
         ssh_username=settings.ssh_user,
         ssh_password=settings.ssh_password.get_secret_value(),
         remote_bind_address=(settings.db_host, settings.db_port),
         # Porta 0: o sistema operacional escolhe uma porta local livre. Evita
-        # conflito com outro túnel ou MySQL já aberto neste computador.
+        # conflito com outro túnel ou banco já aberto neste computador.
         local_bind_address=("127.0.0.1", 0),
         # Autenticação só por senha: impede que o programa tente usar chaves
         # ou o agente SSH do computador e falhe por causa delas.
@@ -57,10 +53,26 @@ def iniciar_conexao() -> Engine:
     # Aceitável em rede interna de estudo; em produção deve ser configurada,
     # para não conectar em um servidor falso.
     tunel.start()
+    return tunel
+
+
+def iniciar_conexao() -> Engine:
+    """Abre o túnel SSH (se configurado) e cria o engine. É seguro chamar mais de uma vez."""
+    global _tunel, _engine
+    if _engine is not None:
+        return _engine
+
+    settings = get_settings()
+    if settings.usa_tunel_ssh:
+        tunel = _abrir_tunel(settings)
+        host, porta = "127.0.0.1", tunel.local_bind_port
+    else:
+        tunel = None
+        host, porta = settings.db_host, settings.db_port
 
     engine = create_engine(
-        settings.database_url(tunel.local_bind_port),
-        # Testa a conexão antes de usá-la: o MySQL derruba conexões ociosas e,
+        settings.database_url(host, porta),
+        # Testa a conexão antes de usá-la: o banco derruba conexões ociosas e,
         # sem isso, a primeira requisição depois de um tempo parado falharia.
         pool_pre_ping=True,
         pool_recycle=1800,
@@ -72,7 +84,7 @@ def iniciar_conexao() -> Engine:
 
 
 def encerrar_conexao() -> None:
-    """Fecha as conexões do banco e o túnel SSH."""
+    """Fecha as conexões do banco e o túnel SSH, se houver."""
     global _tunel, _engine
     if _engine is not None:
         _engine.dispose()

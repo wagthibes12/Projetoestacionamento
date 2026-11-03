@@ -19,14 +19,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Túnel SSH: o MySQL fica em um servidor remoto, acessado por SSH.
-    ssh_host: str
+    # Túnel SSH (opcional): só é usado quando SSH_HOST está preenchido. Sem
+    # ele, a aplicação conecta direto no banco, em DB_HOST:DB_PORT.
+    ssh_host: str | None = None
     ssh_port: int = 22
-    ssh_user: str
+    ssh_user: str | None = None
     # SecretStr impede que as senhas apareçam por engano em logs e no repr().
-    ssh_password: SecretStr
+    ssh_password: SecretStr | None = None
 
-    # Banco de dados, como o servidor SSH enxerga (por isso 127.0.0.1).
+    # Banco de dados. Com túnel SSH, são o host e a porta do banco como o
+    # servidor SSH os enxerga (normalmente 127.0.0.1 e 3306).
     db_host: str = "127.0.0.1"
     db_port: int = 3306
     db_name: str
@@ -40,16 +42,19 @@ class Settings(BaseSettings):
     # Duração do login. 480 minutos = um turno de 8 horas.
     access_token_minutes: int = 480
 
-    def database_url(self, porta_local: int) -> URL:
-        # A porta local do túnel só é conhecida depois que ele abre, por isso
-        # a URL é montada sob demanda. URL.create escapa caracteres especiais:
-        # com f-string, uma senha com "@" ou "/" quebraria a URL.
+    @property
+    def usa_tunel_ssh(self) -> bool:
+        return bool(self.ssh_host)
+
+    def database_url(self, host: str, porta: int) -> URL:
+        # URL.create escapa caracteres especiais: com f-string, uma senha com
+        # "@" ou "/" quebraria a URL.
         return URL.create(
             drivername="mysql+pymysql",
             username=self.db_user,
             password=self.db_password.get_secret_value(),
-            host="127.0.0.1",
-            port=porta_local,
+            host=host,
+            port=porta,
             database=self.db_name,
             query={"charset": "utf8mb4"},
         )
